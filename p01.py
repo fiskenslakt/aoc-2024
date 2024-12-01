@@ -1,17 +1,18 @@
-from aocd import data, submit
+from aocd import data
 
-lines = data.splitlines()
+left_list = []
+right_list = []
 
-L, R = [], []
+for line in data.splitlines():
+    left, right = map(int, line.split())
+    left_list.append(left)
+    right_list.append(right)
 
-for line in lines:
-    a, b = map(int, line.split())
-    L.append(a)
-    R.append(b)
+left_list.sort()
+right_list.sort()
 
-L.sort()
-R.sort()
+total_distance = sum(abs(left - right) for left, right in zip(left_list, right_list))
+similarity_score = sum(left * right_list.count(left) for left in left_list)
 
-# submit(sum(abs(a-b) for a, b in zip(L,R)))
-
-submit(sum(a*R.count(a) for a in L))
+print("Part 1:", total_distance)
+print("Part 2:", similarity_score)
