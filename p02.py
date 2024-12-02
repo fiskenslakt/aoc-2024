@@ -1,3 +1,5 @@
+from itertools import pairwise
+
 from aocd import data
 
 
@@ -16,7 +18,7 @@ safe = 0
 almost_safe = 0
 for report in data.splitlines():
     levels = list(map(int, report.split()))
-    diffs = [l1 - l2 for l1, l2 in zip(levels, levels[1:])]
+    diffs = [l1 - l2 for l1, l2 in pairwise(levels)]
 
     if (all(d > 0 and abs(d) <= 3 for d in diffs)
             or all(d < 0 and abs(d) <= 3 for d in diffs)):
@@ -32,7 +34,7 @@ for report in data.splitlines():
 
     for r in range(len(levels)):
         problem_dampened_report = levels[:r] + levels[r+1:]
-        for l1, l2 in zip(problem_dampened_report, problem_dampened_report[1:]):
+        for l1, l2 in pairwise(problem_dampened_report):
             if is_bad(l1, l2, direction):
                 break
         else:
