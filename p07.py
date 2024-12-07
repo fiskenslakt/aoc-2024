@@ -4,6 +4,8 @@ from aocd import data
 def dfs(value, operands, a=None, cat=False):
     if value == a and not operands:
         return True
+    elif a and value < a:
+        return False
     elif not operands:
         return False
 
