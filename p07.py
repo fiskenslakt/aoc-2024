@@ -1,7 +1,7 @@
-from aocd import data, submit
+from aocd import data
 
 
-def dfs(value, operands, a=None):
+def dfs(value, operands, a=None, cat=False):
     if value == a and not operands:
         return True
     elif not operands:
@@ -14,37 +14,27 @@ def dfs(value, operands, a=None):
         b = operands[0]
         new_operands = operands[1:]
 
-    mul = dfs(value, new_operands, a * b)
-    add = dfs(value, new_operands, a + b)
-
-    return mul or add
-
-
-def dfs2(value, operands, a=None):
-    if value == a and not operands:
-        return True
-    elif not operands:
-        return False
-
-    if a is None:
-        a, b = operands[:2]
-        new_operands = operands[2:]
+    mul = dfs(value, new_operands, a * b, cat)
+    add = dfs(value, new_operands, a + b, cat)
+    if cat:
+        cat = dfs(value, new_operands, int(str(a) + str(b)), cat)
     else:
-        b = operands[0]
-        new_operands = operands[1:]
-
-    mul = dfs2(value, new_operands, a * b)
-    add = dfs2(value, new_operands, a + b)
-    cat = dfs2(value, new_operands, int(str(a) + str(b)))
+        cat = False
 
     return mul or add or cat
 
 
-t = 0
+calibration_result1 = 0
+calibration_result2 = 0
 for equation in data.splitlines():
-    value, operands = equation.split(": ")
+    test_value, raw_operands = equation.split(": ")
+    value = int(test_value)
+    operands = list(map(int, raw_operands.split()))
 
-    if dfs2(int(value), list(map(int, operands.split()))):
-        t += int(value)
+    if dfs(value, operands):
+        calibration_result1 += value
+    if dfs(value, operands, cat=True):
+        calibration_result2 += value
 
-submit(t)
+print("Part 1:", calibration_result1)
+print("Part 2:", calibration_result2)
