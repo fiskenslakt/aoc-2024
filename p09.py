@@ -1,10 +1,10 @@
 from aocd import data
 
-fs = []
+fs: list[int | None] = []
 is_block = True
 block_id = 0
 block_files = []
-free_space = []
+
 for digit in data:
     if is_block:
         block_files.append(digit)
@@ -12,7 +12,6 @@ for digit in data:
             fs.append(block_id)
         block_id += 1
     else:
-        free_space.append(digit)
         for _ in range(int(digit)):
             fs.append(None)
 
