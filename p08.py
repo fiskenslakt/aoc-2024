@@ -1,22 +1,9 @@
 from itertools import combinations
 
-from aocd import data, submit
-
-# data = '''............
-# ........0...
-# .....0......
-# .......0....
-# ....0.......
-# ......A.....
-# ............
-# ............
-# ........A...
-# .........A..
-# ............
-# ............'''
+from aocd import data
 
 city_map = {}
-antennas = []
+antennas = set()
 antinodes = set()
 antinodes2 = set()
 
@@ -24,7 +11,7 @@ for y, row in enumerate(data.splitlines()):
     for x, col in enumerate(row):
         city_map[(x, y)] = col
         if col.isalnum():
-            antennas.append((x, y))
+            antennas.add((x, y))
 
 for a, b in combinations(antennas, 2):
     if city_map[a] == city_map[b]:
@@ -60,14 +47,6 @@ for a, b in combinations(antennas, 2):
             else:
                 break
 
-# submit(len(antinodes))
-submit(len(antinodes2 | set(antennas)))
-# print(antennas)
-# for node in antinodes2:
-#     # if city_map[node] == ".":
-#     city_map[node] = "#"
+print("Part 1:", len(antinodes))
+print("Part 2:", len(antinodes2 | antennas))
 
-# for y, row in enumerate(data.splitlines()):
-#     for x, col in enumerate(row):
-#         print(city_map[(x, y)], end="")
-#     print()
