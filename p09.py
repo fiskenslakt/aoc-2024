@@ -1,6 +1,4 @@
-from aocd import data, submit
-
-# data = "2333133121414131402"
+from aocd import data
 
 fs = []
 is_block = True
@@ -20,23 +18,34 @@ for digit in data:
 
     is_block = not is_block
 
-# print("".join(str(i) if i is not None else "." for i in fs))
+# preserve original state
+disk_map = fs.copy()
 
-# i = 0
-# j = len(fs) - 1
-# while True:
-#     while fs[i] is not None:
-#         i += 1
-
-#     while fs[j] is None:
-#         j -= 1
-
-#     if i >= j:
-#         break
-
-#     fs[i], fs[j] = fs[j], fs[i]
+i = 0
 j = len(fs) - 1
-# import pudb;pu.db
+while True:
+    while fs[i] is not None:
+        i += 1
+
+    while fs[j] is None:
+        j -= 1
+
+    if i >= j:
+        break
+
+    fs[i], fs[j] = fs[j], fs[i]
+
+# get checksum
+t = 0
+for i, d in enumerate(fs):
+    if d is None:
+        continue
+    t += i * int(d)
+
+# reset filesystem
+fs = disk_map
+
+j = len(fs) - 1
 for block_size, block_id in zip(block_files[::-1], range(block_id-1, 0, -1)):
     while fs[j] != block_id:
         j -= 1
@@ -62,15 +71,12 @@ for block_size, block_id in zip(block_files[::-1], range(block_id-1, 0, -1)):
             i += 1
             j -= 1
 
-# print("".join(str(i) if i is not None else "." for i in fs))
-
-t = 0
-
+# get checksum
+t2 = 0
 for i, d in enumerate(fs):
     if d is None:
         continue
-    t += i * int(d)
+    t2 += i * int(d)
 
-submit(t)
-# print(block_files)
-# print(free_space)
+print("Part 1:", t)
+print("Part 2:", t2)
