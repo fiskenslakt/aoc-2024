@@ -11,7 +11,7 @@ def bfs(start):
     while queue:
         x, y = queue.popleft()
 
-        if graph[(x, y)] == "9":
+        if graph[(x, y)] == 9:
             rating += 1
             trailtails.add((x, y))
 
@@ -21,8 +21,8 @@ def bfs(start):
             if (nx, ny) not in graph:
                 continue
 
-            a = int(graph[(x, y)])
-            b = int(graph[(nx, ny)])
+            a = graph[(x, y)]
+            b = graph[(nx, ny)]
             if b - 1 == a:
                 queue.append((nx, ny))
 
@@ -34,7 +34,7 @@ trailheads = []
 
 for y, row in enumerate(data.splitlines()):
     for x, col in enumerate(row):
-        graph[(x, y)] = col
+        graph[(x, y)] = int(col)
         if col == "0":
             trailheads.append((x, y))
 
