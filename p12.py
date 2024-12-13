@@ -27,6 +27,7 @@ def bfs(start, plant):
 
     return region
 
+
 def count_corners(x, y, region):
     corners = 0
     # up, left (outside top left corner)
