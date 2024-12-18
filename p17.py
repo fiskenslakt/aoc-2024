@@ -1,19 +1,14 @@
 import re
 
-from aocd import data, submit
+from aocd import data
 
-# data = """Register A: 729
-# Register B: 0
-# Register C: 0
-
-# Program: 0,1,5,4,3,0"""
 
 class ReservedComboOperandError(Exception):
     """Raised if given a combo operator of 7."""
 
 
 class Computer:
-    def __init__(self, reg_a, reg_b, reg_c):
+    def __init__(self, reg_a, reg_b=0, reg_c=0):
         self.reg_a = reg_a
         self.reg_b = reg_b
         self.reg_c = reg_c
@@ -92,11 +87,36 @@ class Computer:
                 self.pointer += 2
 
 
+def dfs(octals, target):
+    if octals:
+        output = Computer(int(octals, 8)).execute(target)
+        output = list(map(int, output.split(",")))
+        if output == target:
+            return int(octals, 8)
+    else:
+        output = []
+
+    reg_a = None
+    if output == target[-len(output):] or len(output) == 0:
+        for i in range(8):
+            if not octals and i == 0:
+                continue
+            reg_a = dfs(octals + str(i), target)
+            if reg_a is not None:
+                break
+
+    return reg_a
+
+
+
 registers, program = data.split("\n\n")
 
-reg_a, reg_b, reg_c = map(int, re.findall(r"(\d+)", registers))
+reg_a, *_ = map(int, re.findall(r"(\d+)", registers))
 instructions = list(map(int, re.findall(r"(\d+)", program)))
-# import pudb;pu.db
-computer = Computer(reg_a, reg_b, reg_c)
+
+computer = Computer(reg_a)
 output = computer.execute(instructions)
-submit(output)
+print("Part 1:", output)
+
+reg_a = dfs("", instructions)
+print("Part 2:", reg_a)
