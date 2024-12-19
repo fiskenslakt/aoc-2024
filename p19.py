@@ -1,62 +1,6 @@
 from functools import cache
 
-from aocd import data, submit
-
-# data = """r, wr, b, g, bwu, rb, gb, br
-
-# brwrr
-# bggr
-# gbbr
-# rrbgbr
-# ubwu
-# bwurrg
-# brgr
-# bbrgwb"""
-
-
-class Stripe:
-    def __init__(self, color):
-        self.color = color
-        self.children = {}
-        self.is_towel = False
-
-
-class Towel:
-    def __init__(self):
-        self.root = Stripe(None)
-
-    @classmethod
-    def from_list(cls, towel_list):
-        towels = cls()
-        for towel in towel_list:
-            towels.insert(towel)
-
-        return towels
-
-    def _search(self, stripes):
-        cur_stripe = self.root
-
-        for stripe in stripes:
-            if stripe not in cur_stripe.children:
-                return False
-            cur_stripe = cur_stripe.children[stripe]
-
-        return cur_stripe
-
-    def search(self, stripes):
-        stripe = self._search(stripes)
-        return stripe and stripe.is_towel
-
-    def insert(self, stripes):
-        cur_stripe = self.root
-
-        for color in stripes:
-            if color not in cur_stripe.children:
-                cur_stripe.children[color] = Stripe(color)
-
-            cur_stripe = cur_stripe.children[color]
-
-        cur_stripe.is_towel = True
+from aocd import data
 
 
 @cache
@@ -69,23 +13,22 @@ def dfs(design):
     for i in range(len(design), 0, -1):
         stripes = design[:i]
 
-        if towels.search(stripes):
+        if stripes in towels:
             possible += dfs(design[i:])
-            # if dfs(design[i:]):
-            #     possible += 1
 
     return possible
 
 
 towels_raw, designs = data.split("\n\n")
-towels = Towel.from_list(towels_raw.split(", "))
+towels = set(towels_raw.split(", "))
 
-possible = 0
-# import pudb;pu.db
+valid = 0
+total_possible = 0
 for design in designs.splitlines():
-    possible += dfs(design)
-    # if dfs(design):
-    #     possible += 1
+    possible = dfs(design)
+    total_possible += possible
+    if possible > 0:
+        valid += 1
 
-print(possible)
-submit(possible)
+print("Part 1:", valid)
+print("Part 2:", total_possible)
