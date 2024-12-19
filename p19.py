@@ -1,3 +1,5 @@
+from functools import cache
+
 from aocd import data, submit
 
 # data = """r, wr, b, g, bwu, rb, gb, br
@@ -10,10 +12,6 @@ from aocd import data, submit
 # bwurrg
 # brgr
 # bbrgwb"""
-
-# data = """r, b, rb, bc
-
-# rbc"""
 
 
 class Stripe:
@@ -61,18 +59,22 @@ class Towel:
         cur_stripe.is_towel = True
 
 
+@cache
 def dfs(design):
     if not design:
-        return True
+        return 1
+
+    possible = 0
 
     for i in range(len(design), 0, -1):
         stripes = design[:i]
 
         if towels.search(stripes):
-            if dfs(design[i:]):
-                return True
+            possible += dfs(design[i:])
+            # if dfs(design[i:]):
+            #     possible += 1
 
-    return False
+    return possible
 
 
 towels_raw, designs = data.split("\n\n")
@@ -81,8 +83,9 @@ towels = Towel.from_list(towels_raw.split(", "))
 possible = 0
 # import pudb;pu.db
 for design in designs.splitlines():
-    if dfs(design):
-        possible += 1
+    possible += dfs(design)
+    # if dfs(design):
+    #     possible += 1
 
-# print(possible)
+print(possible)
 submit(possible)
