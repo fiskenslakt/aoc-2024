@@ -1,37 +1,6 @@
-from aocd import data, submit
+from collections import deque
 
-# data = """########
-# #..O.O.#
-# ##@.O..#
-# #...O..#
-# #.#.O..#
-# #...O..#
-# #......#
-# ########
-
-# <^^>>>vv<v>>v<<"""
-
-# data = """##########
-# #..O..O.O#
-# #......O.#
-# #.OO..O.O#
-# #..O@..O.#
-# #O#..O...#
-# #O..O..O.#
-# #.OO.O.OO#
-# #....O...#
-# ##########
-
-# <vv>^<v^>v>^vv^v>v<>v^v<v<^vv<<<^><<><>>v<vvv<>^v^>^<<<><<v<<<v^vv^v>^
-# vvv<<^>^v^^><<>>><>^<<><^vv^^<>vvv<>><^^v>^>vv<>v<<<<v<^v>^<^^>>>^<v<v
-# ><>vv>v^v^<>><>>>><^^>vv>v<^^^>>v^v^<^^>v^^>v^<^v>v<>>v^v^<v>v^^<^^vv<
-# <<v<^>>^^^^>>>v^<>vvv^><v<<<>^^^vv^<vvv>^>v<^^^^v<>^>vvvv><>>v^<<^^^^^
-# ^><^><>>><>^^<<^^v>>><^<v>^<vv>>v>>>^v><>^v><<<<v>>v<v<v>vvv>^<><<>^><
-# ^>><>^v<><^vvv<^^<><v<<<<<><^v<<<><<<^^<v<^^^><^>>^<v^><<<^>>^v<v^v<v^
-# >^>>^v>vv>^<<^v<>><<><<v<<v><>v<^vv<<<>^^v^>^^>>><<^v>>v^v><^^>>^<>vv^
-# <><^^>^^^<><vvvvv^v<v<<>^v<v>v<<^><<><<><<<^^<<<^<<>><<><^^^>^^<>^>v<>
-# ^^>vv<^v^v<vv>^<><v<^v>^^^>>>^^vvv^>vvv<>>>^<^>>>>>^<<^v>^vvv<>^<><<v>
-# v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^"""
+from aocd import data
 
 
 def move_robot(obj, x, y, i, j):
@@ -51,6 +20,54 @@ def move_robot(obj, x, y, i, j):
         return moved
 
 
+def can_move_up_down(x, y, j):
+    queue = deque([(x, y)])
+
+    while queue:
+        x, y = queue.popleft()
+
+        if wide_warehouse[(x, y+j)] == "#":
+            return False
+
+        if wide_warehouse[(x, y+j)] == "[":
+            queue.append((x, y+j))
+            queue.append((x+1, y+j))
+        elif wide_warehouse[(x, y+j)] == "]":
+            queue.append((x, y+j))
+            queue.append((x-1, y+j))
+
+    return True
+
+
+def can_move_left_right(x, y, i):
+    x += i
+    while wide_warehouse[(x, y)] not in "#.":
+        x += i
+
+    return wide_warehouse[(x, y)] == "."
+
+
+def move_wide_boxes(x, y, i, j):
+    nx, ny = x + i, y + j
+    if wide_warehouse[(nx, ny)] == ".":
+        wide_warehouse[(nx, ny)] = wide_warehouse[(x, y)]
+        wide_warehouse[(x, y)] = "."
+    elif i:
+        move_wide_boxes(nx, ny, i, j)
+        wide_warehouse[(nx, ny)] = wide_warehouse[(x, y)]
+        wide_warehouse[(x, y)] = "."
+    elif wide_warehouse[(nx, ny)] == "[":
+        move_wide_boxes(nx, ny, i, j)
+        move_wide_boxes(nx+1, ny, i, j)
+        wide_warehouse[(nx, ny)] = wide_warehouse[(x, y)]
+        wide_warehouse[(x, y)] = "."
+    elif wide_warehouse[(nx, ny)] == "]":
+        move_wide_boxes(nx, ny, i, j)
+        move_wide_boxes(nx-1, ny, i, j)
+        wide_warehouse[(nx, ny)] = wide_warehouse[(x, y)]
+        wide_warehouse[(x, y)] = "."
+
+
 warehouse_raw, moves = data.split("\n\n")
 moves = moves.replace("\n", "")
 warehouse = {}
@@ -62,20 +79,14 @@ for y, row in enumerate(warehouse_raw.splitlines()):
 
 max_x, max_y = max(warehouse)
 directions = {"^": (0, -1), "v": (0, 1), "<": (-1, 0), ">": (1, 0)}
-# import pudb;pu.db
+x, y = rx, ry
 for move in moves:
     i, j = directions[move]
 
-    moved = move_robot("@", rx, ry, i, j)
+    moved = move_robot("@", x, y, i, j)
     if moved:
-        rx += i
-        ry += j
-
-# display warehouse
-# for y in range(max_y + 1):
-#     for x in range(max_x + 1):
-#         print(warehouse[(x, y)], end="")
-#     print()
+        x += i
+        y += j
 
 boxes_coords_sum = 0
 for y in range(max_y + 1):
@@ -83,4 +94,46 @@ for y in range(max_y + 1):
         if warehouse[(x, y)] == "O":
             boxes_coords_sum += y * 100 + x
 
-submit(boxes_coords_sum)
+print("Part 1:", boxes_coords_sum)
+
+wide_warehouse = {}
+for y, row in enumerate(warehouse_raw.splitlines()):
+    for x, col in enumerate(row):
+        if col == "#":
+            wide_warehouse[(x+x, y)] = "#"
+            wide_warehouse[(x+x+1, y)] = "#"
+        elif col == "@":
+            rx, ry = x+x, y
+            wide_warehouse[(x+x, y)] = "@"
+            wide_warehouse[(x+x+1, y)] = "."
+        elif col == ".":
+            wide_warehouse[(x+x, y)] = "."
+            wide_warehouse[(x+x+1, y)] = "."
+        elif col == "O":
+            wide_warehouse[(x+x, y)] = "["
+            wide_warehouse[(x+x+1, y)] = "]"
+
+x, y = rx, ry
+for move in moves:
+    i, j = directions[move]
+
+    if (i and can_move_left_right(x, y, i)
+            or j and can_move_up_down(x, y, j)):
+        move_wide_boxes(x, y, i, j)
+        x += i
+        y += j
+
+max_x, max_y = max(wide_warehouse)
+boxes_coords_sum = 0
+for y in range(max_y + 1):
+    for x in range(max_x + 1):
+        if wide_warehouse[(x, y)] == "[":
+            boxes_coords_sum += y * 100 + x
+
+print("Part 2:", boxes_coords_sum)
+
+# display warehouse
+# for y in range(max_y + 1):
+#     for x in range(max_x + 1):
+#         print(wide_warehouse[(x, y)], end="")
+#     print()
