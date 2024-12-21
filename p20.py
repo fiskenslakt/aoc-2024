@@ -61,15 +61,43 @@ for y, row in enumerate(data.splitlines()):
 
         racetrack[(x, y)] = col
 
-cheats = defaultdict(int)
+x, y = sx, sy
+px, py = x, y
+path = [(x, y)]
+while (x, y) != (ex, ey):
+    for i, j in ((1, 0), (0, 1), (-1, 0), (0, -1)):
+        nx, ny = x + i, y + j
 
-for time in bfs((sx, sy), (ex, ey)):
-    cheats[time] += 1
+        if (nx, ny) == (px, py):
+            continue
 
-amount_of_races_that_save_100_picoseconds = 0
+        if racetrack[(nx, ny)] in ".E":
+            px, py = x, y
+            x, y = nx, ny
+            path.append((x, y))
+            continue
+# import pudb;pu.db
+ans = 0
+x = defaultdict(int)
+for i, (x1, y1) in enumerate(path):
+    for j, (x2, y2) in enumerate(path[i+1:], start=i+1):
+        picoseconds = abs(x1 - x2) + abs(y1 - y2)
+        if picoseconds <= 20 and j - i - picoseconds >= 100:
+            ans += 1
+            # x[j - i - picoseconds] += 1
+# print(x)
 
-for picoseconds, races in cheats.items():
-    if max_picoseconds - picoseconds >= 100:
-        amount_of_races_that_save_100_picoseconds += races
+submit(ans)
 
-submit(amount_of_races_that_save_100_picoseconds)
+# cheats = defaultdict(int)
+
+# for time in bfs((sx, sy), (ex, ey)):
+#     cheats[time] += 1
+
+# amount_of_races_that_save_100_picoseconds = 0
+
+# for picoseconds, races in cheats.items():
+#     if max_picoseconds - picoseconds >= 100:
+#         amount_of_races_that_save_100_picoseconds += races
+
+# print("Part 1:", amount_of_races_that_save_100_picoseconds)
