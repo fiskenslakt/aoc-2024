@@ -1,49 +1,48 @@
 from functools import cache
 from itertools import pairwise
 
-from aocd import data, submit
-
-# data = """029A
-# 980A
-# 179A
-# 456A
-# 379A"""
+from aocd import data
 
 
-def path_efficiency(path):
-    efficiency = len(path)  # lower is better
-    for b1, b2 in pairwise(path):
-        efficiency += b1 != b2
+def best_paths(start, end, keypad_type):
+    if keypad_type == "numerical":
+        keypad = numeric_keypad
+        locations = numeric_key_locations
 
-    ax, ay = (2, 0)
-    x, y = direction_key_locations[path[-1]]
-    dist_from_a = abs(x - ax) + abs(y - ay)
-    return efficiency, dist_from_a
+    elif keypad_type == "directional":
+        keypad = directional_keypad
+        locations = direction_key_locations
+
+    sx, sy = locations[start]
+    ex, ey = locations[end]
+
+    dx = ex - sx
+    dy = ey - sy
+
+    paths = []
+    if dx == dy == 0:
+        return ["A"]
+
+    if (ex, sy) in keypad:
+        paths.append("<>"[dx > 0] * abs(dx) + "^v"[dy > 0] * abs(dy) + "A")
+    if (sx, ey) in keypad:
+        paths.append("^v"[dy > 0] * abs(dy) + "<>"[dx > 0] * abs(dx) + "A")
+
+    return paths
 
 
 @cache
-def dfs(start: tuple[int, int], end: str, path: tuple, seen: tuple, keypad_type: str):
-    if keypad_type == "numeric":
-        keypad = numeric_keypad
-    elif keypad_type == "directional":
-        keypad = directional_keypad
+def cost(path: str, robot: int, keypad_type: str):
+    all_paths = (best_paths(a, b, keypad_type) for a, b in pairwise("A" + path))
 
-    if keypad[start] == end:
-        return path
+    if robot == 0:
+        return sum(len(paths[0]) for paths in all_paths)
 
-    sx, sy = start
-    paths = []
-    for direction in "<>^v":
-        i, j = directions[direction]
-        nx, ny = (sx + i, sy + j)
-        if (nx, ny) in keypad and (nx, ny) not in seen:
-            new_path = dfs((sx + i, sy + j), end, path + (direction,), seen + ((nx,ny),), keypad_type)
-            if new_path is not None:
-                paths.append(new_path)
+    costs = []
+    for paths in all_paths:
+        costs.append(min(cost(path, robot - 1, "directional") for path in paths))
 
-    paths.sort(key=path_efficiency)
-    if paths:
-        return paths[0]
+    return sum(costs)
 
 
 numeric_keypad = {
@@ -70,31 +69,13 @@ directions = {
 }
 
 complexity_sum = 0
-
 for code in data.splitlines():
-    start = (2, 3)
-    first_robot = []
-    for button in code:
-        path = dfs(start, button, (), (start), "numeric")
-        start = numeric_key_locations[button]
-        first_robot.extend(path)
-        first_robot.append("A")
-    start = (2, 0)
-    second_robot = []
-    for button in first_robot:
-        path = dfs(start, button, (), (start), "directional")
-        start = direction_key_locations[button]
-        second_robot.extend(path)
-        second_robot.append("A")
+    complexity_sum += int(code[:-1]) * cost(code, 2, "numerical")
 
-    start = (2, 0)
-    third_robot = []
-    for button in second_robot:
-        path = dfs(start, button, (), (start), "directional")
-        start = direction_key_locations[button]
-        third_robot.extend(path)
-        third_robot.append("A")
+print("Part 1:", complexity_sum)
 
-    complexity_sum += int(code[:-1]) * len(third_robot)
+complexity_sum = 0
+for code in data.splitlines():
+    complexity_sum += int(code[:-1]) * cost(code, 25, "numerical")
 
-submit(complexity_sum)
+print("Part 2:", complexity_sum)
