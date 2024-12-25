@@ -61,13 +61,6 @@ directional_keypad = {
 
 direction_key_locations = {v: k for k, v in directional_keypad.items()}
 
-directions = {
-    "<": (-1, 0),
-    ">": (1, 0),
-    "^": (0, -1),
-    "v": (0, 1),
-}
-
 complexity_sum = 0
 for code in data.splitlines():
     complexity_sum += int(code[:-1]) * cost(code, 2, "numerical")
